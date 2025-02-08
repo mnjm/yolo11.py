@@ -24,7 +24,7 @@ class YOLOv11:
             model_path (str): Path to the ONNX model file.
             min_conf (float): Minimum confidence threshold for detections.
             iou_thresh (float): Intersection over Union (IoU) threshold for Non-Max Suppression.
-            valid_class_checker (callable, optional): Function to filter valid class indices. Defaults to all classes.
+            valid_class_checker (callable, optional): valid_class_checker (callable, optional): Function to filter valid classes by label index (int) and label (str). Returns True for valid classes. Defaults to all.
         """
         self.model_path = model_path
         self.ort_sess = ort.InferenceSession(
@@ -34,7 +34,7 @@ class YOLOv11:
         self.output_name = self.ort_sess.get_outputs()[0].name
         self.min_conf = min_conf
         self.iou_thresh = iou_thresh
-        self.valid_class_checker = valid_class_checker if valid_class_checker else lambda cls: True
+        self.valid_class_checker = valid_class_checker if valid_class_checker else lambda lbl_id, lbl: True
         
         meta = self.ort_sess.get_modelmeta()
         
@@ -96,29 +96,38 @@ class YOLOv11:
 
         ## Iterate through all detections
         for i, idx1 in enumerate(order_idx_l):
-            cls = class_idx_l[idx1]
+            lbl_idx = class_idx_l[idx1]
+            lbl = self.class_name_map[lbl_idx]
             conf = max_conf_l[idx1]
             # if it is suppressed or if not a valid class or if conf is less then min_conf
-            if suppresed_mask[idx1] or (not self.valid_class_checker(cls)) or conf < self.min_conf:
+            if suppresed_mask[idx1] or (not self.valid_class_checker(lbl_idx, lbl)) or conf < self.min_conf:
                 continue
-            lbl = self.class_name_map[cls]
             bbox1 = ObjectBBox(lbl, conf, *raw_out[:4, idx1], scale[1], scale[0])
             ## Select detection as valid
             valid_bbox_l.append(bbox1)
 
             for idx2 in order_idx_l[i+1:]:
-                cls = class_idx_l[idx2]
+                lbl_idx = class_idx_l[idx2]
+                lbl = self.class_name_map[lbl_idx]
                 conf = max_conf_l[idx2]
                 # if it is suppressed or if not a valid class or if conf is less then min_conf
-                if suppresed_mask[idx2] or (not self.valid_class_checker(cls)) or conf < self.min_conf:
+                if suppresed_mask[idx2] or (not self.valid_class_checker(lbl_idx, lbl)) or conf < self.min_conf:
                     continue
-                lbl = self.class_name_map[cls]
                 bbox2 = ObjectBBox(lbl, conf, *raw_out[:4, idx2], scale[1], scale[0])
                 iou = calc_iou(bbox1, bbox2)
                 if (iou > self.iou_thresh):
                     suppresed_mask[idx2] = True
 
         return valid_bbox_l
+    
+    def get_class_id_name_pairs(self):
+        """
+        Get all the class id:name pairs
+
+        Returns:
+            dict: {id: name} pairs of all classes that yolo model can detect
+        """
+        return self.class_name_map
 
     def detect(self, image):
         """

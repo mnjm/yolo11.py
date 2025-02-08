@@ -56,8 +56,28 @@ def main():
 
     input_video_path = Path(args.input_video)
     output_video_path = input_video_path.parent / (input_video_path.stem + "_out.mp4")
+    
+    valid_class_d = {
+        1: "bicycle",
+        2: "car",
+        3: "motorcycle",
+        4: "airplane",
+        5: "bus",
+        6: "train",
+        7: "truck",
+        8: "boat",
+    }
 
-    model = YOLOv11("yolo11s.onnx")
+    model = YOLOv11(
+        model_path="yolo11s.onnx",
+        valid_class_checker=lambda lbl_id, _: 1 <= lbl_id <= 8 # detect only vehicles
+        # (or)
+        # valid_class_checker=lambda lbl_id, lbl: lbl_id in valid_class_d and lbl == valid_class_d[lbl_id]
+    )
+    
+    # to get the class_id, name pairs
+    # print("\n".join([ f"{k}: {v}" for k,v in model.get_class_id_name_pairs().items() ]))
+
     process_video(input_video_path, output_video_path, model, args.save)
 
 if __name__ == "__main__":

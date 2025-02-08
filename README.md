@@ -36,3 +36,31 @@ To run it, use
 python3 test_vid.py <input_video.mp4> <--save>
 ```
 `--save` will save the output video.
+
+## Class Targeted NMS
+
+You can pass a function or callable to filter valid classes, making NMS slightly efficient. Example
+
+```python
+valid_class_d = {
+    1: "bicycle",
+    2: "car",
+    3: "motorcycle",
+    4: "airplane",
+    5: "bus",
+    6: "train",
+    7: "truck",
+    8: "boat",
+}
+
+model = YOLOv11(
+    model_path="yolo11s.onnx",
+    valid_class_checker=lambda lbl_id, _: 1 <= lbl_id <= 8 # detect only vehicles
+    # (or)
+    # valid_class_checker=lambda lbl_id, lbl: lbl_id in valid_class_d and lbl == valid_class_d[lbl_id]
+)
+```
+To get all {class_id, name} pairs
+```python
+print("\n".join([ f"{k}: {v}" for k,v in model.get_class_id_name_pairs().items() ]))
+```
