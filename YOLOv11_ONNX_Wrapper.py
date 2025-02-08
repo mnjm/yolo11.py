@@ -148,7 +148,7 @@ class YOLOv11:
 
 def test():
     model = YOLOv11("yolo11s.onnx")
-    test_img = Path("./pexels-jose-mueses-540180-1280560.jpg")
+    test_img = Path("test_imgs/pexels-jose-mueses-540180-1280560.jpg")
     img = cv2.imread(test_img)
     assert img is not None, "Test img not found"
     
@@ -156,7 +156,7 @@ def test():
     for bbox in bbox_l:
         img = bbox.draw(img)
     
-    cv2.imwrite(test_img.stem + "_out.jpg", img) 
+    cv2.imwrite(str(test_img.parent / test_img.stem) + "_out.jpg", img) 
 
 if __name__ == "__main__":
     test()
