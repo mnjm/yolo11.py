@@ -1,3 +1,10 @@
+"""
+YOLOv11 ONNX Inferenence wrapper
+
+Author: Manjunath Mohan
+Github: github.com/mnjm
+"""
+
 import numpy as np
 import onnxruntime as ort
 from ast import literal_eval
@@ -6,10 +13,19 @@ from bbox import ObjectBBox, calc_iou
 from pathlib import Path
 
 class YOLOv11:
-
+    """ Wrapper for YOLOv11 ONNX Model (uses ONNXRuntime to run the model) """
     providers = ["CUDAExecutionProvider", "CoreMLExecutionProvider", "CPUExecutionProvider"]
 
     def __init__(self, model_path, min_conf=0.35, iou_thresh=0.45, valid_class_checker=None):
+        """
+        Initialize YOLOv11 model for object detection.
+
+        Args:
+            model_path (str): Path to the ONNX model file.
+            min_conf (float): Minimum confidence threshold for detections.
+            iou_thresh (float): Intersection over Union (IoU) threshold for Non-Max Suppression.
+            valid_class_checker (callable, optional): Function to filter valid class indices. Defaults to all classes.
+        """
         self.model_path = model_path
         self.ort_sess = ort.InferenceSession(
             model_path, providers=YOLOv11.providers
@@ -31,17 +47,34 @@ class YOLOv11:
         ## Get class name map from onnx model's metadata
         assert "names" in custom_metadata, "Error: ONNX model does not contain 'names' metadata"
         self.class_name_map = literal_eval(custom_metadata["names"])
-        
 
     def _preprocess_input(self, input_img):
+        """
+        Preprocess the input image for YOLOv11.
+
+        Args:
+            input_img (np.ndarray): Original image in HxWxC format.
+
+        Returns:
+            np.ndarray: Preprocessed image in CxHxW format, normalized and resized.
+        """
         inp = cv2.resize(input_img, self.input_size)
         inp = inp.astype(np.float32) / 255.0
         inp = np.transpose(inp, (2, 0, 1)) # from HxWxC to CxHxW
         inp = np.expand_dims(inp, axis=0)
         return inp
 
-    # perform Non Max Suppression
     def _postprocess_output(self, raw_out, original_shape):
+        """
+        Perform Non-Maximum Suppression (NMS) on model output.
+
+        Args:
+            raw_out (np.ndarray): Raw output from the model.
+            original_shape (tuple): Original image shape (height, width).
+
+        Returns:
+            list: List of detected ObjectBBox objects.
+        """
         raw_out = np.squeeze(raw_out)
         assert raw_out.shape[0] == 4 + len(self.class_name_map), f"Output not in valid shape {raw_out.shape}"
         n_det = raw_out.shape[1]
@@ -88,10 +121,19 @@ class YOLOv11:
         return valid_bbox_l
 
     def detect(self, image):
+        """
+        Run object detection on an image.
+
+        Args:
+            image (np.ndarray): Input image in HxWxC format.
+
+        Returns:
+            list: List of detected ObjectBBox objects.
+        """
         image = np.squeeze(image)
         assert isinstance(image, np.ndarray) and image.dtype == np.uint8, "Not a valid image"
         shape = image.shape
-        assert len(shape) == 3 and shape[-1] == 3, "Input is not in HxWxC formaat"
+        assert len(shape) == 3 and shape[-1] == 3, "Input is not in HxWxC format"
         original_shape = shape[:2]
 
         # Preprocess
