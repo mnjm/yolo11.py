@@ -4,14 +4,14 @@ Python wrapper for running YOLOv11 object detection using an ONNX model with ONN
 
 ## Usage
 
-```bash
+```sh
 pip install -r requirements.txt
 ```
 If you have GPU, uncomment `onnxruntime` in `requirements.txt` and uncomment `onnxruntime-gpu` line
 
 ## Running on Image
 
-```
+```python
 from yolo_wrapper import YOLOv11
 import cv2
 from pathlib import Path
@@ -32,7 +32,7 @@ cv2.imwrite(str(test_img.parent / test_img.stem) + "_out.jpg", img)
 You can take a look at `test_vid.py`.
 
 To run it, use
-```bash
+```sh
 python3 test_vid.py <input_video.mp4> <--save>
 ```
 `--save` will save the output video.
