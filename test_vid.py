@@ -52,11 +52,12 @@ def main():
     parser = argparse.ArgumentParser(description="YOLOv11 Video Object Detection")
     parser.add_argument("input_video", type=str, help="Path to input video file")
     parser.add_argument("--save", action="store_true", help="Save the processed video")
+    parser.add_argument("--model", default="yolo11s.onnx", help="ONNX model path")
     args = parser.parse_args()
 
     input_video_path = Path(args.input_video)
     output_video_path = input_video_path.parent / (input_video_path.stem + "_out.mp4")
-    
+
     valid_class_d = {
         1: "bicycle",
         2: "car",
@@ -69,12 +70,12 @@ def main():
     }
 
     model = YOLOv11(
-        model_path="yolo11s.onnx",
+        model_path = args.model,
         valid_class_checker=lambda lbl_id, _: 1 <= lbl_id <= 8 # detect only vehicles
         # (or)
         # valid_class_checker=lambda lbl_id, lbl: lbl_id in valid_class_d and lbl == valid_class_d[lbl_id]
     )
-    
+
     # to get the class_id, name pairs
     # print("\n".join([ f"{k}: {v}" for k,v in model.get_class_id_name_pairs().items() ]))
 
