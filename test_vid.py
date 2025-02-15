@@ -1,7 +1,7 @@
 import argparse
 import cv2
 from pathlib import Path
-from yolov11_onnx_wrapper import YOLOv11
+from yolo11 import YOLOv11
 
 def process_video(input_video_path, output_video_path, model, save):
     """

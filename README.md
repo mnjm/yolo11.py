@@ -1,4 +1,4 @@
-# YOLOv11 ONNX Inference Wrapper
+# YOLO11.py
 
 Python wrapper for running YOLOv11 object detection using an ONNX model with ONNXRuntime, Including optimized post processing with class targeted NMS.
 
@@ -12,7 +12,7 @@ If you have GPU, uncomment `onnxruntime` in `requirements.txt` and uncomment `on
 ## Running on Image
 
 ```python
-from yolo_wrapper import YOLOv11
+from yolo11 import YOLOv11
 import cv2
 from pathlib import Path
 
