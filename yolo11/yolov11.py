@@ -9,7 +9,7 @@ import numpy as np
 import onnxruntime as ort
 from ast import literal_eval
 import cv2
-from yolov11_onnx_wrapper.bbox import ObjectBBox, calc_iou
+from yolo11.bbox import ObjectBBox, calc_iou
 from pathlib import Path
 
 class YOLOv11:
